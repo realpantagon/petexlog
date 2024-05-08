@@ -2,53 +2,81 @@ import React, { useState, useEffect } from "react";
 import { Select, MenuItem } from "@mui/material";
 import TextField from "@mui/material/TextField";
 import Record from "./Record";
+import axios from "axios";
 
 function Forminput() {
-  const options = [
-    "USD 50-100",
-    "USD 5-20",
-    "USD 1",
-    "EUR",
-    "JPY",
-    "GBP",
-    "SGD",
-    "AUD",
-    "CHF",
-    "HKD",
-    "CAD",
-    "NZD",
-    "SEK",
-    "TWD",
-    "NOK",
-    "MYR",
-    "CNY",
-    "KRW",
-  ];
   const [selectedOption, setSelectedOption] = useState("");
   const [rate, setRate] = useState("");
   const [amount, setAmount] = useState("");
   const [type, setType] = useState("Buying");
   const [data, setData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [currencies, setCurrencies] = useState([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  useEffect(() => {
-    const savedData = localStorage.getItem("formData");
-    if (savedData) {
-      setData(JSON.parse(savedData));
-    }
-  }, []);
+  const fetchCurrenciesData = async () => {
+    setIsLoading(true);
+    setError(null);
 
-  useEffect(() => {
-    localStorage.setItem("formData", JSON.stringify(data));
-  }, [data]);
+    try {
+      const response = await axios.get(
+        "https://api.airtable.com/v0/appXvdgNSlqDP9QwS/Table%201",
+        {
+          headers: {
+            Authorization:
+              "Bearer patJrmzFDvT8Qncac.657ccc7a50caaebd1e4a3a390acca8e67d06047dd779d5726b602d4febe8e383",
+          },
+        }
+      );
+      const currencyData = response.data.records.map((record) => ({
+        label: record.fields.Currency,
+        rate: record.fields.Rate,
+      }));
+      setCurrencies(currencyData);
 
-  useEffect(() => {
-    return () => {
+      // Clear stored data
       localStorage.removeItem("formData");
+    } catch (error) {
+      setError(error);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false); // Set isRefreshing to false after fetching data
+    }
+  };
+
+  useEffect(() => {
+    const storedData = localStorage.getItem("formData");
+    if (storedData) {
+      setData(JSON.parse(storedData));
+    } else {
+      setData([]);
+    }
+
+    fetchCurrenciesData();
+
+    // Fetch data every minute
+    const interval = setInterval(() => {
+      setIsRefreshing(true); // Set isRefreshing to true before fetching data
+      fetchCurrenciesData();
+    }, 60000); // 60000 milliseconds = 1 minute
+
+    return () => {
+      clearInterval(interval); // Clean up the interval on component unmount
     };
   }, []);
 
   const handleOptionChange = (event) => {
-    setSelectedOption(event.target.value);
+    const selectedCurrency = event.target.value;
+    const currencyInfo = currencies.find(
+      (currency) => currency.label === selectedCurrency
+    );
+    setSelectedOption(selectedCurrency);
+    if (currencyInfo) {
+      setRate(currencyInfo.rate);
+    } else {
+      setRate(""); // Clear rate if currency not found
+    }
   };
 
   const handleInput1Change = (event) => {
@@ -77,56 +105,39 @@ function Forminput() {
     setSelectedOption("");
     setRate("");
     setAmount("");
+
+    // Store the updated data in localStorage
+    localStorage.setItem("formData", JSON.stringify([...data, newData]));
   };
 
   const handleClearClick = () => {
     setData([]);
+    localStorage.removeItem("formData");
   };
-
-  const fetchData = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-        const response = await axios.get(
-            "https://api.airtable.com/v0/appXvdgNSlqDP9QwS/Table%201",
-            {
-                headers: {
-                    Authorization:
-                        "Bearer patJrmzFDvT8Qncac.657ccc7a50caaebd1e4a3a390acca8e67d06047dd779d5726b602d4febe8e383",
-                },
-            }
-        );
-        // Filter the data to include only required fields
-        const filteredData = response.data.records.map(record => ({
-            Flags: record.fields.Flags[0].url,
-            Cur: record.fields.Cur,
-            Currency: record.fields.Currency,
-            Rate: record.fields.Rate
-        }));
-        console.log(filteredData);
-        setData(filteredData);
-        
-    } catch (error) {
-        setError(error);
-    } finally {
-        setIsLoading(false);
-    }
-};
 
   return (
     <div className="p-5">
       <div className="text-3xl text-center">PETEX DATA</div>
-      <div className="grid grid-cols-9 gap-4 m-4 p-4 rounded-lg">
+      {isRefreshing && <div>Refreshing data...</div>}
+      <div className="grid grid-cols-10 gap-4 m-4 p-4 rounded-lg">
+      <button
+        onClick={() => {
+          setIsRefreshing(true);
+          fetchCurrenciesData();
+        }}
+        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mb-4 h-full"
+      >
+        Refresh
+      </button>
         <Select
           value={selectedOption}
           onChange={handleOptionChange}
           className="col-span-2 select"
         >
           <MenuItem value="">Select a Currency</MenuItem>
-          {options.map((option) => (
-            <MenuItem key={option} value={option}>
-              {option}
+          {currencies.map((currency) => (
+            <MenuItem key={currency.label} value={currency.label}>
+              {currency.label}
             </MenuItem>
           ))}
         </Select>
