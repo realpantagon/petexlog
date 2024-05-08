@@ -109,7 +109,7 @@ function Forminput() {
     localStorage.setItem("formData", JSON.stringify([...data, newData]));
   
     // Send Line notification
-    const message = `Time, Currency, Rate, Amount, Type, Total(Baht)\n${timestamp}, ${selectedOption}, ${rate}, ${amount}, ${type}, ${newData.total.toFixed(2)}`;
+    const message = `${timestamp}\n ${selectedOption}\n ${rate}\n ${amount}\n ${type}\n ${newData.total.toFixed(2)} baht`;
     console.log(message);
     sendLineNotification(message)
       .then(() => console.log("Line notification sent successfully"))
