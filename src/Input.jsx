@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Select, MenuItem } from "@mui/material";
-import TextField from "@mui/material/TextField";
+import { Select, MenuItem, TextField, Button } from "@mui/material";
 import Record from "./Record";
 import axios from "axios";
 
@@ -35,7 +34,7 @@ function Forminput() {
       }));
       setCurrencies(currencyData);
 
-      // Clear stored data
+      // Clear stored data after successful fetch
       localStorage.removeItem("formData");
     } catch (error) {
       setError(error);
@@ -232,4 +231,4 @@ function Forminput() {
   );
 }
 
-export default Forminput;
+export default Forminput; 
