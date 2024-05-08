@@ -111,8 +111,33 @@ function Forminput() {
   };
 
   const handleClearClick = () => {
-    setData([]);
-    localStorage.removeItem("formData");
+    if (window.confirm("Are you sure you want to delete all data?")) {
+      setData([]);
+      localStorage.removeItem("formData");
+    }
+  };
+
+  const exportToGoogleSheet = () => {
+    // Convert data to CSV format
+    const csvData = [
+      ["Time", "Currency", "Rate", "Amount", "Type", "Total"].join(","),
+      ...data.map(
+        (entry) =>
+          `${entry.time},${entry.currency},${entry.rate},${entry.amount},${entry.type},${entry.total.toFixed(
+            2
+          )}`
+      ),
+    ].join("\n");
+
+    // Create a temporary anchor element to download the CSV file
+    const downloadLink = document.createElement("a");
+    const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    downloadLink.href = url;
+    downloadLink.download = "data.csv";
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
   };
 
   return (
@@ -120,15 +145,15 @@ function Forminput() {
       <div className="text-3xl text-center">PETEX DATA</div>
       {isRefreshing && <div>Refreshing data...</div>}
       <div className="grid grid-cols-10 gap-4 m-4 p-4 rounded-lg">
-      <button
-        onClick={() => {
-          setIsRefreshing(true);
-          fetchCurrenciesData();
-        }}
-        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mb-4 h-full"
-      >
-        Refresh
-      </button>
+        <button
+          onClick={() => {
+            setIsRefreshing(true);
+            fetchCurrenciesData();
+          }}
+          className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mb-4 h-full"
+        >
+          Refresh
+        </button>
         <Select
           value={selectedOption}
           onChange={handleOptionChange}
@@ -181,7 +206,7 @@ function Forminput() {
       <div className="Summary">
         <p className="total">Total : </p>
         <p className="totaldata">
-          {data.reduce((acc, item) => acc + item.total, 0)}{" "}
+          {data.reduce((acc, item) => acc + item.total, 0).toFixed(2)}{" "}
         </p>
       </div>
 
@@ -190,6 +215,12 @@ function Forminput() {
         className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mt-4"
       >
         DELETE
+      </button>
+      <button
+        onClick={exportToGoogleSheet}
+        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-4 mt-4"
+      >
+        Export as CSV
       </button>
     </div>
   );
