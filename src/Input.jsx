@@ -104,9 +104,32 @@ function Forminput() {
     setSelectedOption("");
     setRate("");
     setAmount("");
-
+  
     // Store the updated data in localStorage
     localStorage.setItem("formData", JSON.stringify([...data, newData]));
+  
+    // Send Line notification
+    const message = `Time, Currency, Rate, Amount, Type, Total(Baht)\n${timestamp}, ${selectedOption}, ${rate}, ${amount}, ${type}, ${newData.total.toFixed(2)}`;
+    console.log(message);
+    sendLineNotification(message)
+      .then(() => console.log("Line notification sent successfully"))
+      .catch((error) => console.error("Error sending Line notification:", error));
+  };
+
+  const sendLineNotification = async (message) => {
+    const token = "bQpzIpNyMwmu9yf5PaZny40gpRyFYTteESRDeypWpqp";
+    const response = await axios("https://notify-api.line.me/api/notify", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: "Bearer"+token,
+      },
+      data: "message=" + message
+    });
+  
+    if (!response.ok) {
+      throw new Error("Failed to send Line notification");
+    }
   };
 
   const handleClearClick = () => {
@@ -122,9 +145,9 @@ function Forminput() {
       ["Time", "Currency", "Rate", "Amount", "Type", "Total"].join(","),
       ...data.map(
         (entry) =>
-          `${entry.time},${entry.currency},${entry.rate},${entry.amount},${entry.type},${entry.total.toFixed(
-            2
-          )}`
+          `${entry.time},${entry.currency},${entry.rate},${entry.amount},${
+            entry.type
+          },${entry.total.toFixed(2)}`
       ),
     ].join("\n");
 
@@ -166,31 +189,40 @@ function Forminput() {
           ))}
         </Select>
         <div className="col-span-2">
-        <TextField
-  id="rate"
-  type="text"
-  value={rate}
-  onChange={handleInput1Change}
-  label="Rate"
-  variant="outlined"
-  inputProps={{ pattern: "^[0-9]*\.?[0-9]*$" }} // Allow numbers and decimals
-  error={!/^[0-9]*\.?[0-9]*$/.test(rate)} // Check if input is a valid number
-  helperText={!/^[0-9]*\.?[0-9]*$/.test(rate) ? "Please enter a valid number" : ""}
-/>
+          <TextField
+            id="rate"
+            type="text"
+            value={rate}
+            onChange={handleInput1Change}
+            label="Rate"
+            variant="outlined"
+            className="w-full"
+            inputProps={{ pattern: "^[0-9]*.?[0-9]*$" }} // Allow numbers and decimals
+            error={!/^[0-9]*\.?[0-9]*$/.test(rate)} // Check if input is a valid number
+            helperText={
+              !/^[0-9]*\.?[0-9]*$/.test(rate)
+                ? "Please enter a valid number"
+                : ""
+            }
+          />
         </div>
         <div className="col-span-2">
-        <TextField
-  id="amount"
-  type="text"
-  value={amount}
-  onChange={handleInput2Change}
-  label="Amount"
-  className="col-span-1 inamount"
-  variant="outlined"
-  inputProps={{ pattern: "^[0-9]*\.?[0-9]*$" }} // Allow numbers and decimals
-  error={!/^[0-9]*\.?[0-9]*$/.test(amount)} // Check if input is a valid number
-  helperText={!/^[0-9]*\.?[0-9]*$/.test(amount) ? "Please enter a valid number" : ""}
-/>
+          <TextField
+            id="amount"
+            type="text"
+            value={amount}
+            onChange={handleInput2Change}
+            label="Amount"
+            className="w-full"
+            variant="outlined"
+            inputProps={{ pattern: "^[0-9]*.?[0-9]*$" }} // Allow numbers and decimals
+            error={!/^[0-9]*\.?[0-9]*$/.test(amount)} // Check if input is a valid number
+            helperText={
+              !/^[0-9]*\.?[0-9]*$/.test(amount)
+                ? "Please enter a valid number"
+                : ""
+            }
+          />
         </div>
         <Select
           value={type}
@@ -231,4 +263,4 @@ function Forminput() {
   );
 }
 
-export default Forminput; 
+export default Forminput;
