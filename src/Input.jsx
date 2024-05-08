@@ -109,7 +109,7 @@ function Forminput() {
     localStorage.setItem("formData", JSON.stringify([...data, newData]));
   
     // Send Line notification
-    const message = `${timestamp}\n ${selectedOption}\n ${rate}\n ${amount}\n ${type}\n ${newData.total.toFixed(2)} baht`;
+    const message = `\n${timestamp}\n ${selectedOption}\n ${rate}\n ${amount}\n ${type}\n ${newData.total.toFixed(2)} baht`;
     console.log(message);
     sendLineNotification(message)
       .then(() => console.log("Line notification sent successfully"))
@@ -118,16 +118,18 @@ function Forminput() {
 
   const sendLineNotification = async (message) => {
     const token = "bQpzIpNyMwmu9yf5PaZny40gpRyFYTteESRDeypWpqp";
-    const response = await axios("https://notify-api.line.me/api/notify", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: "Bearer"+token,
-      },
-      data: "message=" + message
-    });
+    const url = "https://notify-api.line.me/api/notify";
+    const headers = {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "Authorization": `Bearer ${token}`,
+    };
+    const data = `message=${message}`;
   
-    if (!response.ok) {
+    try {
+      const response = await axios.post(url, data, { headers });
+      response.data; // You can handle the response data here
+    } catch (error) {
+      console.error("Failed to send Line notification:", error);
       throw new Error("Failed to send Line notification");
     }
   };
