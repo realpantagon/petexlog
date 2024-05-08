@@ -167,25 +167,31 @@ function Forminput() {
           ))}
         </Select>
         <div className="col-span-2">
-          <TextField
-            id="rate"
-            type="text"
-            value={rate}
-            onChange={handleInput1Change}
-            label="Rate"
-            variant="outlined"
-          />
+        <TextField
+  id="rate"
+  type="text"
+  value={rate}
+  onChange={handleInput1Change}
+  label="Rate"
+  variant="outlined"
+  inputProps={{ pattern: "^[0-9]*\.?[0-9]*$" }} // Allow numbers and decimals
+  error={!/^[0-9]*\.?[0-9]*$/.test(rate)} // Check if input is a valid number
+  helperText={!/^[0-9]*\.?[0-9]*$/.test(rate) ? "Please enter a valid number" : ""}
+/>
         </div>
         <div className="col-span-2">
-          <TextField
-            id="amount"
-            type="text"
-            value={amount}
-            onChange={handleInput2Change}
-            label="Amount"
-            className="col-span-1 inamount"
-            variant="outlined"
-          />
+        <TextField
+  id="amount"
+  type="text"
+  value={amount}
+  onChange={handleInput2Change}
+  label="Amount"
+  className="col-span-1 inamount"
+  variant="outlined"
+  inputProps={{ pattern: "^[0-9]*\.?[0-9]*$" }} // Allow numbers and decimals
+  error={!/^[0-9]*\.?[0-9]*$/.test(amount)} // Check if input is a valid number
+  helperText={!/^[0-9]*\.?[0-9]*$/.test(amount) ? "Please enter a valid number" : ""}
+/>
         </div>
         <Select
           value={type}
